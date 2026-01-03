@@ -8,19 +8,19 @@ In this post, multiplication of signal frequencies by 2 is discussed.
 
 In digital design, when clk of lower frequency than existing, is required, a counter is often used as a converter. In this way, the frequency can be divided by 2 in the power of the width of the counter. However, the frequency can't be increased in this way. To do this, the signal of the increased frequency is required to change not only with changing of the input one, but also in time when all signals are constant.
 
-![](media/task.svg)
+![](../media/task.svg)
 
 В ПЛИС (например, Altera Cyclone IV, как на схеме ниже) в этом случае используют аналоговые блоки автоподстройки частоты – PLL. Это большие схемы, в которых генератором управляют через отрицательную обратную связь.
 
 In FPGA (for example, Altera Cyclone IV, as on the scheme below) in the case analog blocks called PLL (phase-locked loop) are used. These ones are complex circuits, in which oscillator is controlled with negative feedback.  
 
-![](media/pll.png)
+![](../media/pll.png)
 
 Реализовать умножение частоты на 2, на самом деле, значительно проще. Достаточно сместить исходный сигнал clk на четверть периода. Далее можно использовать комбинационную логику.
 
 Actually, the realisation of the frequency multiplication by 2 can be done in a significantly simpler way. It's enough to shift the original clk signal by a quarter of the period. After that, a common combinational logic can be used.
 
-![](media/how_to.svg)
+![](../media/how_to.svg)
 
 Как видим, нужно выполнить XOR между исходным и смещённым сигналами.
 
@@ -38,13 +38,13 @@ As an option, a propagation delay can be added using an RC-circuit. It's maybe t
 
 The another way provides much lower dependence on the input frequency: the triangle signal should be defined, that would increase, when it's 1 on the input, and decrease, when it's 0. Respectively, 1 should be put on the output, when the value of the signal is bigger than it's average.
 
-![](media/analog_triangle.svg)
+![](../media/analog_triangle.svg)
 
 Реализуется треугольный сигнал, на самом деле, той же RC-цепочкой. Переходные процессы в ней экспоненциальные, асимметричные. Из-за этого цифровой сигнал, полученный с неё по сформулированному условию, тоже будет асимметричным (длительность 1 и 0 будут отличаться), что может быть нежелательно. Для устранения этого эффекта нужно выбирать номиналы так, чтобы время релаксации RC было значительно меньше периода, или просто заменить резистор на источник тока, то есть, транзистор. 
 
 Actually, the triangle signal can be implemented with same RC-circuit. The transitions are exponential and asymmetric in it. Because of this, the digital signal obtained from the circuit by the rule above would be asymmetric too (the duration of 1 and 0 would be different), that can be unwanted. To compensate such effect, the values should be chosen so that the relaxation time RC was much less than the period of the signal, or just replace the resistor with a current source, i.e. transistor. 
 
-![](media/structure.svg)
+![](../media/structure.svg)
 
 Достаточно удобно использовать второй вариант. Интегральные транзисторы значительно компактнее резисторов больших номиналов. Правда, конденсатор нужно как заряжать, так и разряжать. Для этого вместо обычного транзистора можно использовать приоткрытый проходной ключ. Так схема будет заряжаться и разряжаться одинаково и, если не линейно, то по крайней мере, не экспоненциально.
 
