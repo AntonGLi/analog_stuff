@@ -26,14 +26,21 @@ module sampler (
     logic [6:0] rise_val;
     logic [6:0] fall_val;
 
+    logic rc_prev;
+
+    always_ff @(posedge CLK_200) begin
+        
+    end
+
     always_ff @(posedge CLK_200) begin
         if (RST) begin
             rise_val <= '0;
             fall_val <= '0;
         end else begin
-            if (from_hf_cnt[7]) begin
-                rise_val <=
-            end
+            if (from_hf_cnt[7])
+                rise_val <= from_hf_cnt[6:0];
+            else
+                fall_val <= from_hf_cnt[6:0];
         end 
     end
 endmodule
