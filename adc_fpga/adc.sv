@@ -1,3 +1,34 @@
+module adc (
+    input   logic CLK_200,
+    input   logic RST,
+
+    output  logic to_rc,
+    input   logic from_rc,
+    
+    output  logic [7:0] sample_raw,
+    output  logic sample_change_toggle,
+);
+
+logic [7:0] from_hf_cnt;
+
+hf_counter CNT_1 (
+    .CLK_200(CLK_200),
+    .RST(RST),
+    .to_rc(to_rc),
+    .cnt(from_hf_cnt) 
+);
+
+sampler ADC_CORE (
+    .CLK_200(CLK_200),
+    .RST(RST),
+    .from_hf_cnt(from_hf_cnt),   
+    .from_rc(from_rc),
+    .sample_buf(sample_raw),
+    .sample_change_toggle(sample_change_toggle)
+);
+
+endmodule
+
 module hf_counter (
     input   logic CLK_200,
     input   logic RST,
@@ -19,9 +50,8 @@ module sampler (
     input   logic RST,
     input   logic [7:0] from_hf_cnt,   
     input   logic from_rc,
-    output  logic [7:0] sample,
-    output  logic VLD_buf,
-    input   logic RDY
+    output  logic [7:0] sample_buf,
+    output  logic sample_change_toggle
 );
 
     // FROM RC CHANGE (RISE FALL) DETECTION 
@@ -73,7 +103,6 @@ module sampler (
     // SAMPLE CALCULATION
 
     wire  sample [7:0] = rise_val - fall_val;
-    logic sample_buf;
 
     wire  sample_change = ~to_rc & to_rc_change;
 
@@ -99,9 +128,12 @@ endmodule
 
 module sample_processor (
     input   logic           CLK_SLOW,
+    input   logic           RST,
     input   logic           sample_change_toggle,
     input   logic [7:0]     sample_i,
-    output  logic [11:0]    sample_o
+    output  logic [11:0]    sample_o,
+    output  logic           sample_vld,
+    output  logic           fifo_rdy
 );
 
     //READ SAMPLE
@@ -144,36 +176,31 @@ module sample_processor (
 
     always_ff @(posedge CLK_SLOW) begin
         if (RST)
-            sum_16 <= 0;
+            sum_16 <= '0;
         else if (accumulator_sum_en)
-            sum_16 <= sum_16 + 1;
+            sum_16 <= sum_16 + 4'b1;
     end
 
     always_ff @(posedge CLK_SLOW) begin
         if (RST)
-            accumulator <= 0;
+            accumulator <= '0;
         else if (sum_16 == '1)
-            accumulator <= 0;
+            accumulator <= '0;
         else if (accumulator_sum_en)
             accumulator <= accumulator + {4'b0, sample_buf};
     end
 
-    assign sample_o = accumulator;
+    // OUT BUFFER AND VLD/RDY INTERFACE
 
-endmodule
-
-module adc (
-    input   logic CLK_SLOW,
-    input   logic CLK_200,
-    input   logic RST,
-
-    output  logic to_rc,
-    input   logic from_rc,
-    
-    output  logic [11:0] sample,
-    output  logic sample_vld,
-    input   logic fifo_rdy    
-);
-
+    always_ff @(posedge CLK_SLOW) begin
+        if (RST) begin
+            sample_o <= '0;
+            sample_vld <= '0;
+        end else if (sum_16 == '1) begin
+            sample_o <= accumulator;
+            sample_vld <= 1;
+        end else if (fifo_rdy)
+            sample_vld <= 0;
+    end
 
 endmodule
