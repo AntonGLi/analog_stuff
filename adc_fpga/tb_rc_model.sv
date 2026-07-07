@@ -10,6 +10,7 @@ module RC_model #(
 );
 
 logic from_rc;
+logic virt_clk_1000mhz;
 
 shortreal rc;
 shortreal drc_dt;
@@ -25,15 +26,16 @@ shortreal max_v = 3.3/2; // relatively to its average i.e. 3.3/2 V
 initial begin
   rc     = -max_v;
   drc_dt = 0;
+  virt_clk_1000mhz=0;
 
   fork
     forever begin
       #1 rc = rc + drc_dt * 1;
 
-      if (to_rc)
-        drc_dt = ( max_v - rc) / tau; // [V/ns]
+      if (to_rc_i)
+        drc_dt = ( max_v - rc) / TAU; // [V/ns]
       else
-        drc_dt = (-max_v - rc) / tau;
+        drc_dt = (-max_v - rc) / TAU;
 
       delay = (ANALOG_IN - rc) / drc_dt;
     end
@@ -41,13 +43,16 @@ initial begin
     begin
       #0.001 //for predictability of delay calculation
       forever begin
-        if (delay < 1)
-          #delay from_rc = (rc > ANALOG_IN); #(1-delay) //total delay of this condition is still 1 ns
-        else
-          #1
+        #1 virt_clk_1000mhz=~virt_clk_1000mhz;
       end
     end
   join
+end
+
+always @(posedge virt_clk_1000mhz) begin
+  if (delay < 1) begin
+    from_rc = #delay (rc > ANALOG_IN);
+  end
 end
 
 always @(from_rc) begin

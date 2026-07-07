@@ -20,7 +20,7 @@ adc ADC (
     .to_rc(to_rc),
     .from_rc(from_rc),
     .sample_raw(sample_raw),
-    .sample_change_toggle(sample_change_toggle),
+    .sample_change_toggle(sample_change_toggle)
 );
 
 sample_processor DSP (

@@ -6,7 +6,7 @@ module adc (
     input   logic from_rc,
     
     output  logic [7:0] sample_raw,
-    output  logic sample_change_toggle,
+    output  logic sample_change_toggle
 );
 
 logic [7:0] from_hf_cnt;
@@ -102,7 +102,7 @@ module sampler (
 
     // SAMPLE CALCULATION
 
-    wire  sample [7:0] = rise_val - fall_val;
+    wire [7:0] sample = rise_val - fall_val;
 
     wire  sample_change = ~to_rc & to_rc_change;
 
@@ -114,8 +114,6 @@ module sampler (
     end
     
     // OUTPUT INTERFACE LOGIC
-
-  logic sample_change_toggle;
 
     always_ff @(posedge CLK_200) begin
         if (RST)
@@ -144,12 +142,13 @@ module sample_processor (
     logic [7:0] sample_buf;
 
     always_ff @(posedge CLK_SLOW) begin
-        if (RST)
+        if (RST) begin
             sample_change_toggle_buf1 <= 0;
             sample_change_toggle_buf2 <= 0;
-        else
+        end else begin
             sample_change_toggle_buf1 <= sample_change_toggle;
             sample_change_toggle_buf2 <= sample_change_toggle_buf1;
+        end
     end
 
     wire sample_read_en = sample_change_toggle_buf2 ^ sample_change_toggle_buf1;

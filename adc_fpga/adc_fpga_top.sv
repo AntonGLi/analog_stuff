@@ -1,4 +1,4 @@
-
+/*
 module adc_fpga_top (
     input  logic CLK_50,
     input  logic RST,
@@ -22,3 +22,4 @@ sample_processor (
 );
 
 endmodule
+*/
