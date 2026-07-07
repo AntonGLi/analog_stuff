@@ -19,9 +19,13 @@ initial begin
   CLK_200 = 0;
   CLK_60  = 0;
   RST     = 1;
+  fifo_rdy = 0;
 
   #20 RST = 0;
-  #100000000  $finish();
+  #1000000;
+  $finish(0);  // 0 = normal termination
+  #0;
+  $finish;     // Double-tap
 end
 
 always begin
@@ -40,6 +44,15 @@ RC_model #(
   .from_rc_o(from_rc)
 );
 
-adc_top_verif_wrap DUT (.*);
+adc_top_verif_wrap DUT (
+  .CLK_200(CLK_200),
+  .CLK_60(CLK_60),
+  .RST(RST),
+  .to_rc(to_rc),
+  .from_rc(from_rc),
+  .sample_processed(sample_processed),
+  .sample_vld(sample_vld),
+  .fifo_rdy(fifo_rdy)
+);
 
 endmodule

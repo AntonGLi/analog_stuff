@@ -26,7 +26,7 @@ shortreal max_v = 3.3/2; // relatively to its average i.e. 3.3/2 V
 initial begin
   rc     = -max_v;
   drc_dt = 0;
-  virt_clk_1000mhz=0;
+  virt_clk_1000mhz=1;
 
   fork
     forever begin
@@ -37,7 +37,7 @@ initial begin
       else
         drc_dt = (-max_v - rc) / TAU;
 
-      delay = (ANALOG_IN - rc) / drc_dt;
+      delay = (-ANALOG_IN + rc) / drc_dt;
     end
 
     begin
@@ -49,8 +49,12 @@ initial begin
   join
 end
 
+logic debug_1;
+logic debug_2;
+assign debug_1 = (rc > ANALOG_IN);
+assign debug_2 = (delay < 1) && (delay > 0);
 always @(posedge virt_clk_1000mhz) begin
-  if (delay < 1) begin
+  if ((delay < 1) && (delay > 0)) begin
     from_rc = #delay (rc > ANALOG_IN);
   end
 end

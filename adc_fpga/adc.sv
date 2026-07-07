@@ -131,7 +131,7 @@ module sample_processor (
     input   logic [7:0]     sample_i,
     output  logic [11:0]    sample_o,
     output  logic           sample_vld,
-    output  logic           fifo_rdy
+    input   logic           fifo_rdy
 );
 
     //READ SAMPLE
