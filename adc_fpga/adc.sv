@@ -183,7 +183,7 @@ module sample_processor (
     always_ff @(posedge CLK_SLOW) begin
         if (RST)
             accumulator <= '0;
-        else if (sum_16 == '1)
+        else if ((sum_16 == '1) && accumulator_sum_en)
             accumulator <= '0;
         else if (accumulator_sum_en)
             accumulator <= accumulator + {4'b0, sample_buf};
@@ -195,7 +195,7 @@ module sample_processor (
         if (RST) begin
             sample_o <= '0;
             sample_vld <= '0;
-        end else if (sum_16 == '1) begin
+        end else if ((sum_16 == '1) && accumulator_sum_en) begin
             sample_o <= accumulator;
             sample_vld <= 1;
         end else if (fifo_rdy)
