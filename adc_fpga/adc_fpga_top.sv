@@ -6,9 +6,7 @@ module adc_top_verif_wrap (
     output  logic to_rc,
     input   logic from_rc,
     
-    output  logic [11:0] sample_processed,
-    output  logic sample_vld,
-    input   logic fifo_rdy
+    output  logic tx_o
 );
 
 logic sample_change_toggle;
@@ -35,8 +33,29 @@ sample_processor DSP (
 
 //byte packer logic
 
+logic [11:0] sample_fifo;
+logic [07:0] byte_packed;
+logic 
+
+always_ff @(posedge CLK_60) begin
+    if (RST)
+        sample_fifo <= '0
+        byte_packed <= '0;
+    else begin
+        if (sample_vld)
+            sample_fifo <= sample_processed;
+        
+        byte_packed <= 
+    end
+end
+
 
 //uart logic
+
+
+    output  logic [11:0] sample_processed,
+    output  logic sample_vld,
+    input   logic fifo_rdy
 
 not_my_uart_tx #(
 /*
@@ -46,7 +65,7 @@ NUM_CLK is a half of bit length measured in clock periods.
 1 bit is 30 clk periods
 0.5 bit is 15-16 clk periods
 */
-  parameter NUM_CLK = 15
+  .NUM_CLK(15)
 ) UART (
   .clk_i(CLK_60),
   .rst_i(RST),

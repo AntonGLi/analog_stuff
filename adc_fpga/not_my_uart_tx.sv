@@ -1,14 +1,14 @@
 module not_my_uart_tx #(
-  parameter NUM_CLK = 3
+    parameter NUM_CLK = 3
 ) (
-  input logic       clk_i,
-  input logic       rst_i,
+    input logic       clk_i,
+    input logic       rst_i,
 
-  input logic[7:0]  data_i,
-  input logic       valid_i,
+    input logic[7:0]  data_i,
+    input logic       valid_i,
   
-  output logic      ready_o,
-  output logic      tx_o
+    output logic      ready_o,
+    output logic      tx_o
 );
 
 
@@ -19,9 +19,9 @@ wire baud;
 assign baud = (cnt_baud == NUM_CLK-1);  
 
 always @(posedge clk_i) begin
-  if (rst_i) cnt_baud <= {NUM_BIT_COUNT{1'd0}};
-  else if (baud) cnt_baud <= {NUM_BIT_COUNT{1'd0}};
-  else cnt_baud <= cnt_baud + 1;  
+    if (rst_i) cnt_baud <= {NUM_BIT_COUNT{1'd0}};
+    else if (baud) cnt_baud <= {NUM_BIT_COUNT{1'd0}};
+    else cnt_baud <= cnt_baud + 1;  
 end
 
 state_FSM state;
@@ -32,25 +32,25 @@ typedef enum  {
 
 
 always @(*) begin
-  next_state = state;
-  case (state)
-    INITIAL_STATE_FSM: if (valid_i) next_state = TRANSMIT_DATA_FSM;
-    TRANSMIT_DATA_FSM : if (data == 10'd1) next_state = INITIAL_STATE_FSM;
-  endcase
+    next_state = state;
+    case (state)
+        INITIAL_STATE_FSM: if (valid_i) next_state = TRANSMIT_DATA_FSM;
+        TRANSMIT_DATA_FSM : if (data == 10'd1) next_state = INITIAL_STATE_FSM;
+    endcase
 end
  
 always @(posedge clk_i) begin
-  if (rst_i) begin
-    data  <= 10'd1;
-  end
-  if ((TRANSMIT_DATA_FSM) && baud) data <= {1'd0, data [9:1] };
-  if (valid_i && (state == INITIAL_STATE_FSM)) data <= {1'd1, data_i, 1'd0};
+    if (rst_i) begin
+        data  <= 10'd1;
+    end
+    if ((TRANSMIT_DATA_FSM) && baud) data <= {1'd0, data [9:1] };
+    if (valid_i && (state == INITIAL_STATE_FSM)) data <= {1'd1, data_i, 1'd0};
 end
 
 
 always @(posedge clk_i) begin
-  if (rst_i) state <= INITIAL_STATE_FSM;
-  else state <= next_state;
+    if (rst_i) state <= INITIAL_STATE_FSM;
+    else state <= next_state;
 end
 
 
