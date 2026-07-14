@@ -33,6 +33,28 @@ sample_processor DSP (
     .fifo_rdy(fifo_rdy)
 );
 
+//byte packer logic
+
+
+//uart logic
+
+not_my_uart_tx #(
+/*
+NUM_CLK is a half of bit length measured in clock periods.
+60 MHz clk_i
+1-2 MHz bit frequency (1/period)
+1 bit is 30 clk periods
+0.5 bit is 15-16 clk periods
+*/
+  parameter NUM_CLK = 15
+) UART (
+  .clk_i(CLK_60),
+  .rst_i(RST),
+  .data_i(),
+  .valid_i(),
+  .ready_o(),
+  .tx_o()
+);
 endmodule
 
 /*
