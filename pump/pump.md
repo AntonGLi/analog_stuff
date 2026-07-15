@@ -54,8 +54,15 @@ $КПД\approx \frac{V_{in}+V_{clk}-2U_d}{V_{in}+V_{clk}+2U_d}$, при $U_{d} \
 
 ### Использование
 
+[charge pump pll](https://patents.google.com/patent/US20030107419A1/en)
 
+[low noise charge pump article](https://www.researchgate.net/publication/2982852_Switching_noise_and_shoot-through_current_reduction_techniques_for_switched-capacitor_voltage_doubler)
 
+[switched capacitors charge pump for dram patent](https://patents.google.com/patent/US7994845B2/en)
+
+[masters on area optimisation of charge pump](https://web.engr.oregonstate.edu/~moon/research/files/Ryan_Perigny.pdf)
+
+[soft start cp](https://patents.google.com/patent/US20050174815A1/en)
 
 
 
