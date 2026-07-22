@@ -3,25 +3,22 @@
 module top ();
 
 logic CLK_200;
-logic CLK_60;
+logic CLK_50;
 logic RST;
 
 logic to_rc;
 logic from_rc;
 
-logic [11:0] sample_processed;
-logic sample_vld;
-logic fifo_rdy;
+logic tx_o;
 
 initial begin
   $dumpfile("dump.vcd");
   $dumpvars();
-  CLK_200 = 0;
-  CLK_60  = 0;
+  CLK_200 = 1;
+  CLK_50  = 0;
   RST     = 1;
-  fifo_rdy = 0;
 
-  #20 RST = 0;
+  #25 RST = 0;
   #1000000;
   $finish(0);  // 0 = normal termination
   #0;
@@ -32,12 +29,12 @@ always begin
   #5 CLK_200 = ~CLK_200;
 end
 always begin
-  #16.667 CLK_60  = ~CLK_60;
+  #20 CLK_50  = ~CLK_50;
 end
 
 RC_model #(
   .TAU(1000), // all in ns
-  .ANALOG_IN(0),
+  .ANALOG_IN(0.1),
   .EXT_DELAY(20)
 ) EXT_model (
   .to_rc_i(to_rc),
@@ -46,13 +43,11 @@ RC_model #(
 
 adc_top_verif_wrap DUT (
   .CLK_200(CLK_200),
-  .CLK_60(CLK_60),
+  .CLK_50(CLK_50),
   .RST(RST),
   .to_rc(to_rc),
   .from_rc(from_rc),
-  .sample_processed(sample_processed),
-  .sample_vld(sample_vld),
-  .fifo_rdy(fifo_rdy)
+  .tx_o(tx_o)
 );
 
 endmodule

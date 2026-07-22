@@ -33,22 +33,25 @@ always @(posedge clk_i) begin
 				end
 		
 				else cnt_baud <= cnt_baud + 1;
-				
-			RECIEVE_DATA_FSM : 
+			end
+
+			RECIEVE_DATA_FSM : begin 
 				if (baud) cnt_baud <= {NUM_BIT_COUNT{1'd0}};
 				else cnt_baud <= cnt_baud + 1;
 			end
+
 		endcase
 	end
 end
 	
-state_FSM state;
-state_FSM next_state;
+
 typedef enum { 
     INITIAL_STATE_FSM,
     CONTROL_INPUT_STATE_FSM,
     RECIEVE_DATA_FSM} state_FSM;
 
+state_FSM state;
+state_FSM next_state;
 
 always_comb begin
 	next_state = state;

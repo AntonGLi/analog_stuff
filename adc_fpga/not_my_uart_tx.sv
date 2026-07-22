@@ -24,12 +24,12 @@ always @(posedge clk_i) begin
     else cnt_baud <= cnt_baud + 1;  
 end
 
-state_FSM state;
-state_FSM next_state;
 typedef enum  {
     INITIAL_STATE_FSM,
     TRANSMIT_DATA_FSM} state_FSM;
 
+state_FSM state;
+state_FSM next_state;
 
 always @(*) begin
     next_state = state;

@@ -3,7 +3,8 @@
 module RC_model #(
   parameter shortreal TAU = 1000, // all in ns
   parameter shortreal ANALOG_IN = 0,
-  parameter shortreal EXT_DELAY = 20
+  parameter shortreal EXT_DELAY = 20,
+  parameter shortreal VIRT_CLK_PERIOD = 2
 ) (
   input  logic to_rc_i,
   output logic from_rc_o
@@ -16,6 +17,8 @@ shortreal rc;
 shortreal drc_dt;
 shortreal delay;
 shortreal max_v = 3.3/2; // relatively to its average i.e. 3.3/2 V
+shortreal VIRT_CLK_HALF=VIRT_CLK_PERIOD/2;
+
 
 // every 1 ns check for to_rc
 // calculate derivative d(rc)/dt
@@ -30,7 +33,7 @@ initial begin
 
   fork
     forever begin
-      #1 rc = rc + drc_dt * 1;
+      #VIRT_CLK_PERIOD rc = rc + drc_dt * 1;
 
       if (to_rc_i)
         drc_dt = ( max_v - rc) / TAU; // [V/ns]
@@ -43,7 +46,7 @@ initial begin
     begin
       #0.001 //for predictability of delay calculation
       forever begin
-        #1 virt_clk_1000mhz=~virt_clk_1000mhz;
+        #VIRT_CLK_HALF virt_clk_1000mhz=~virt_clk_1000mhz;
       end
     end
   join
