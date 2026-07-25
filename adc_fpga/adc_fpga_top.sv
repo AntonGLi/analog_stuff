@@ -40,53 +40,27 @@ sample_processor DSP (
     .sample_i(sample_raw),
     .sample_o(sample_processed),
     .sample_vld(sample_vld),
-    .fifo_rdy(1'b1)
+    .fifo_rdy(sample_fifo_rdy)
 );
 
 //byte packer and uart logic
 
-logic [15:0] sample_fifo;
 logic [01:0] send_rdy;
 logic [07:0] byte_packed;
 logic        sample_fifo_rdy;
 logic        uart_rdy;
 logic        byte_vld;
 
-
-assign sample_fifo_rdy = (send_rdy[1] == 1'b0);
-
-always_ff @(posedge CLK_50) begin
-    if (RST) begin
-        sample_fifo <= '0;
-        send_rdy <= '0;
-    end else begin
-        if (sample_vld) begin
-
-            case (send_rdy)
-                2'b00:
-                    sample_fifo <= {sample_fifo[15:12], sample_processed};
-                2'b01:
-                    sample_fifo <= {sample_processed[3:0], sample_fifo[11:8], sample_processed[7:0]};
-            endcase
-
-            byte_vld <= '1;
-            send_rdy <= send_rdy + 2'b01;
-
-        end else if (uart_rdy) begin
-            if (send_rdy==2'b10)
-                send_rdy <= send_rdy + 2'b01;
-            if (send_rdy==2'b11 || send_rdy==2'b00)
-                byte_vld <= 0;
-        end
-    end
-end
-
-always_comb begin
-    if (send_rdy[1])
-            byte_packed = sample_fifo[15:8];
-    else
-            byte_packed = sample_fifo[7:0]; 
-end
+buf_12_to_8 byte_packer (
+    .CLK(CLK_50),
+    .RST(RST),
+    .bus_12b_i(sample_processed),
+    .bus_12b_vld_i(sample_vld),
+    .bus_12b_rdy_o(sample_fifo_rdy),
+    .bus_8b_o(byte_packed),
+    .bus_8b_rdy_i(uart_rdy),
+    .bus_8b_vld_o(byte_vld)
+);
 
 not_my_uart_tx #(
 /*
