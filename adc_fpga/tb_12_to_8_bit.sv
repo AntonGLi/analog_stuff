@@ -1,40 +1,46 @@
-module adc_top_verif_wrap (
-    input   logic CLK_50,
-    input   logic CLK_200,
-    input   logic RST,
+`timescale 1ns / 1ps
 
-    output  logic to_rc,
-    input   logic from_rc,
-    
-    output  logic tx_o
-);
+module tb_12_to_8_bit;
 
-logic sample_change_toggle;
-logic [7:0] sample_raw;
+logic CLK_50;
+logic RST;
 
-adc ADC (
-    .CLK_200(CLK_200),
-    .RST(RST),
-    .to_rc(to_rc),
-    .from_rc(from_rc),
-    .sample_raw(sample_raw),
-    .sample_change_toggle(sample_change_toggle)
-);
+logic to_rc;
+logic from_rc;
+
+logic tx_o;
+
+initial begin
+  $dumpfile("dump.vcd");
+  $dumpvars();
+  CLK_50  = 0;
+  RST     = 1;
+  sample_vld = 0;
+
+  #25 RST = 0;
+  #1000000;
+  $finish(0);  // 0 = normal termination
+  #0;
+  $finish;     // Double-tap
+end
+
+
+always begin
+  #20 CLK_50  = ~CLK_50;
+end
 
 logic [11:0] sample_processed;
 logic sample_vld;
 
-sample_processor DSP (
-    .CLK_SLOW(CLK_50),
-    .RST(RST),
-    .sample_change_toggle(sample_change_toggle),
-    .sample_i(sample_raw),
-    .sample_o(sample_processed),
-    .sample_vld(sample_vld),
-    .fifo_rdy(sample_fifo_rdy)
-);
+always begin
+  #20000 sample_processed = $urandom_range(0, 4095);
+  sample_vld = 1;
+end
 
-//byte packer and uart logic
+always @(posedge CLK_50) begin
+  if (sample_fifo_rdy)
+    sample_vld = 0;
+end
 
 logic [01:0] send_rdy;
 logic [07:0] byte_packed;
@@ -61,7 +67,7 @@ NUM_CLK is a half of bit length measured in clock periods.
 1 bit is 30 clk periods
 0.5 bit is 15-16 clk periods
 */
-  .NUM_CLK(80)
+  .NUM_CLK(30)
 ) UART (
   .clk_i(CLK_50),
   .rst_i(RST),

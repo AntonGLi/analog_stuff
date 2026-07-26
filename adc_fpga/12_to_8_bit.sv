@@ -21,9 +21,6 @@ enum logic [1:0] {
 logic [15:0] buf_reg;
 logic [15:0] buf_next;
 
-logic rdy_o_up;
-logic vld_o_down;
-
 logic trans_in;
 logic trans_out;
 
@@ -37,8 +34,6 @@ always_comb begin
     next_state = state;
     bus_8b_o = buf_reg[7:0];
     buf_next = {buf_reg[15:12], bus_12b_i};
-    rdy_o_up = '1;
-    vld_o_down = '1;
     case (state)
         EMPTY: begin
             if (trans_in) begin
@@ -47,39 +42,51 @@ always_comb begin
             end
         end
         SEND_1ST_BYTE: begin
+            if (~trans_out)
             if (trans_in) begin
                 buf_we = '1;
-                buf_next = {bus_12b_i[3:0], buf_reg[11:8], bus_12b_i[7:0]};
+                buf_next = {bus_12b_i[11:8], buf_reg[11:8], bus_12b_i[7:0]};
                 next_state = SEND_SPC_BYTE;
             end
         end
         SEND_SPC_BYTE: begin
             bus_8b_o = buf_reg[15:8];
-            rdy_o_up    = '0;
-            vld_o_down  = '0;
             if (trans_out) begin
                 next_state = SEND_3RD_BYTE;
             end
+
         end
         SEND_3RD_BYTE: begin
             if (trans_out) begin
                 next_state = EMPTY;
-                if (trans_in)
-                    buf_we = '1;
             end
         end
     endcase
 end
 
-
 always_ff @(posedge CLK) begin
     if (RST) begin
         bus_12b_rdy_o <= '0;
     end else begin
-        if (bus_12b_vld_i)
+        if (trans_in)
             bus_12b_rdy_o <= '0;
-        else if (trans_out && ~(state == SEND_SPC_BYTE));
-            bus_12b_rdy_o <= '1;
+        else begin
+            case (state)
+                EMPTY:
+                    bus_12b_rdy_o <= '1;
+                SEND_1ST_BYTE: begin
+                    if (trans_out)
+                        bus_12b_rdy_o <= '1;
+                end
+                SEND_SPC_BYTE: begin
+                    bus_12b_rdy_o <= '0;
+                end
+                SEND_3RD_BYTE: begin
+                    if (trans_out)
+                        bus_12b_rdy_o <= '1;
+                end
+            endcase
+        end
     end
 end
 
@@ -87,9 +94,9 @@ always_ff @(posedge CLK) begin
     if (RST) begin
         bus_8b_vld_o <= '0;
     end else begin
-        if (bus_12b_vld_i && bus_12b_rdy_o)
+        if (trans_in)
             bus_8b_vld_o <= '1;
-        else if (bus_8b_rdy_i && bus_8b_vld_o && ~(state == SEND_SPC_BYTE))
+        else if (trans_out && (state != SEND_SPC_BYTE))
             bus_8b_vld_o <= '0;
     end
 end
