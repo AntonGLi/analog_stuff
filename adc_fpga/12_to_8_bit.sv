@@ -42,7 +42,6 @@ always_comb begin
             end
         end
         SEND_1ST_BYTE: begin
-            if (~trans_out)
             if (trans_in) begin
                 buf_we = '1;
                 buf_next = {bus_12b_i[11:8], buf_reg[11:8], bus_12b_i[7:0]};
