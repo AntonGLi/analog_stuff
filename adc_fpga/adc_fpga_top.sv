@@ -70,11 +70,11 @@ NUM_CLK is a half of bit length measured in clock periods.
 1 bit is 30 clk periods
 0.5 bit is 15-16 clk periods
 */
-  .NUM_CLK(30)
+  .NUM_CLK(80)
 ) UART (
   .clk_i(CLK_50),
   .rst_i(RST),
-  .data_i(sample_fifo[15:8]),
+  .data_i(byte_packed),
   .valid_i(byte_vld),
   .ready_o(uart_rdy),
   .tx_o(tx_o)
