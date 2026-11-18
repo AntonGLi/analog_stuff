@@ -2,6 +2,15 @@
 
 module tb_12_to_8_bit;
 
+localparam CLK_PERIOD = 20;       //ns
+localparam NUM_CLK    = 4;       //time in clk periods when receiver is busy
+localparam SIM_TIME   = 1000000;  //total sim time in ns (after rst goes down)
+localparam SAMPLE_NEW = 10*CLK_PERIOD;    //new input goes to 12_to_8 every SAMPLE_NEW in ns 
+
+
+shortreal HALF_CLK_PER = CLK_PERIOD / 2;
+
+
 logic CLK_50;
 logic RST;
 
@@ -18,7 +27,7 @@ initial begin
   sample_vld = 0;
 
   #25 RST = 0;
-  #1000000;
+  #SIM_TIME;
   $finish(0);  // 0 = normal termination
   #0;
   $finish;     // Double-tap
@@ -26,14 +35,14 @@ end
 
 
 always begin
-  #20 CLK_50  = ~CLK_50;
+  #HALF_CLK_PER CLK_50  = ~CLK_50;
 end
 
 logic [11:0] sample_processed;
 logic sample_vld;
 
 always begin
-  #20000 sample_processed = $urandom_range(0, 4095);
+  #SAMPLE_NEW sample_processed = $urandom_range(0, 4095);
   sample_vld = 1;
 end
 
@@ -62,7 +71,7 @@ buf_12_to_8 byte_packer (
 logic [7:0] received_value;
 
 receiver #(
-  .NUM_CLK(300)
+  .NUM_CLK(NUM_CLK)
 ) UART (
   .bus_8b_i(byte_packed),
   .bus_8b_vld_i(byte_vld),
@@ -91,8 +100,13 @@ NUM_CLK is a half of bit length measured in clock periods.
 */
 endmodule
 
+
+
+// tb unit that can receive 8 bit input every NUM_CLK periods
+// vld-rdy interface with extra delay in other words
+
 module receiver #(
-  parameter NUM_CLK=40
+  parameter NUM_CLK = 0
 ) (
   input  logic [7:0] bus_8b_i,
   input  logic bus_8b_vld_i,
@@ -102,14 +116,14 @@ module receiver #(
   output logic [7:0] received_value
 );
 
-logic [$clog2(NUM_CLK)-1:0] cnt;
+logic [$clog2(NUM_CLK):0] cnt;
 logic trans;
 assign trans = bus_8b_rdy_o && bus_8b_vld_i;
 
 always @(posedge CLK) begin
   if (RST || trans || (cnt == NUM_CLK)) 
     cnt <= '0;
-  else 
+  else if (~bus_8b_rdy_o)
     cnt <= cnt + 1;
 end
 
